@@ -1,0 +1,11 @@
+# UrbanMind — Python Dependencies
+pandas>=1.5
+numpy>=1.23
+scipy>=1.10
+fastapi>=0.100
+uvicorn>=0.22
+httpx>=0.24
+python-multipart>=0.0.6
+firebase-admin>=6.0
+tqdm>=4.65
+pydantic>=2.0

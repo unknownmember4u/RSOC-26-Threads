@@ -1,17 +1,43 @@
 # UrbanMind — Output Directory
 
-This directory contains the final processed datasets produced by the data pipeline.
-
-## Files
-
-| File | Description |
-|---|---|
-| `processed_data_raw.csv` | Master merged dataset with all 21 columns, 10 districts, hourly frequency |
+This folder contains **`processed_data.csv`** — the cleaned, feature-engineered
+dataset ready for ML training and dashboard consumption.
 
 ## Schema
 
-Every row contains:
-`timestamp, district_id, lat, lng, pm25, pm10, aqi, weather_temp, weather_humidity, vehicle_count, avg_speed_kmh, incident_flag, consumption_kwh, peak_demand_kw, renewable_pct, route_id, passenger_count, capacity, delay_min, water_liters, waste_kg`
+| # | Column | Type | Description |
+|---|--------|------|-------------|
+| 1 | `timestamp` | datetime | Hourly timestamp (YYYY-MM-DD HH:MM:SS) |
+| 2 | `district_id` | str | District code (D01–D10) |
+| 3 | `pm25` | float | PM2.5 concentration (normalised) |
+| 4 | `pm10` | float | PM10 concentration (normalised) |
+| 5 | `aqi` | float | Air Quality Index (normalised) |
+| 6 | `weather_temp` | float | Temperature °C (normalised) |
+| 7 | `weather_humidity` | float | Humidity % (normalised) |
+| 8 | `vehicle_count` | float | Vehicles per hour (normalised) |
+| 9 | `avg_speed_kmh` | float | Average speed km/h (normalised) |
+| 10 | `incident_flag` | float | Traffic incident (0/1, normalised) |
+| 11 | `consumption_kwh` | float | Energy consumption kWh (normalised) |
+| 12 | `peak_demand_kw` | float | Peak demand kW (normalised) |
+| 13 | `renewable_pct` | float | Renewable energy % (normalised) |
+| 14 | `route_id` | str | Bus route ID (R01–R05) |
+| 15 | `passenger_count` | float | Bus passengers (normalised) |
+| 16 | `capacity` | float | Bus capacity (normalised) |
+| 17 | `delay_min` | float | Bus delay minutes (normalised) |
+| 18 | `water_liters` | float | Water consumption litres/hr (normalised) |
+| 19 | `waste_kg` | float | Waste generated kg/hr (normalised) |
+| 20 | `lat` | float | District latitude (normalised) |
+| 21 | `lng` | float | District longitude (normalised) |
+| 22 | `hour_of_day` | int | Hour (0–23) |
+| 23 | `day_of_week` | int | Day (0=Mon, 6=Sun) |
+| 24 | `is_weekend` | bool | Saturday or Sunday |
+| 25 | `is_peak_hour` | bool | Hour in {8, 9, 17, 18, 19} |
+| 26 | `traffic_density` | float | vehicle_count / max per district |
+| 27 | `pollution_index` | float | Weighted PM2.5+PM10+AQI (normalised 0–1) |
+| 28 | `energy_usage_per_area` | float | kWh / district area km² |
+| 29 | `transport_load` | float | passenger_count / capacity [0,1] |
+| 30 | `rolling_aqi_3h` | float | 3-hour rolling mean AQI per district |
+| 31 | `traffic_pollution_ratio` | float | traffic_density / (pollution_index + ε) |
 
 ## Districts (Pune, India)
 
@@ -27,3 +53,11 @@ Every row contains:
 | D08 | Kharadi | 18.5497 | 73.9397 |
 | D09 | Viman Nagar | 18.5679 | 73.9143 |
 | D10 | Swargate | 18.5018 | 73.8636 |
+
+## How to regenerate
+
+```bash
+cd Vaishnavi
+python pipeline_runner.py               # full pipeline + Firestore upload
+python pipeline_runner.py --skip-upload  # without Firestore
+```

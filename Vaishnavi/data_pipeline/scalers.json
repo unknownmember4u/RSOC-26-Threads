@@ -1,0 +1,66 @@
+{
+  "pm25": {
+    "min": 1.96,
+    "max": 71.03583333333333
+  },
+  "pm10": {
+    "min": 4.32,
+    "max": 211.1483333333333
+  },
+  "aqi": {
+    "min": 19.0,
+    "max": 197.75
+  },
+  "weather_temp": {
+    "min": 26.638732659930927,
+    "max": 36.602186181388376
+  },
+  "weather_humidity": {
+    "min": 49.52889143418252,
+    "max": 66.41547782600516
+  },
+  "vehicle_count": {
+    "min": 71.0,
+    "max": 2552.0
+  },
+  "avg_speed_kmh": {
+    "min": 5.0,
+    "max": 66.5
+  },
+  "incident_flag": {
+    "min": 0.0,
+    "max": 0.0
+  },
+  "consumption_kwh": {
+    "min": 144.74,
+    "max": 854.68
+  },
+  "peak_demand_kw": {
+    "min": 188.17,
+    "max": 1111.08
+  },
+  "renewable_pct": {
+    "min": 10.0,
+    "max": 25.0
+  },
+  "passenger_count": {
+    "min": 2.0,
+    "max": 111.0
+  },
+  "capacity": {
+    "min": 80.0,
+    "max": 80.0
+  },
+  "delay_min": {
+    "min": 1.5,
+    "max": 141.5
+  },
+  "water_liters": {
+    "min": 3918.9,
+    "max": 41317.7
+  },
+  "waste_kg": {
+    "min": 73.2,
+    "max": 868.8
+  }
+}
