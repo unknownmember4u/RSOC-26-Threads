@@ -4,11 +4,11 @@ import Topbar from './Topbar';
 
 export default function DashboardLayout() {
   return (
-    <div className="flex min-h-screen bg-dark-bg">
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--app-bg)', transition: 'background 0.25s' }}>
       <Sidebar />
-      <div className="flex-1 ml-[260px] flex flex-col">
+      <div style={{ flex: 1, marginLeft: 68, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Topbar />
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main style={{ flex: 1, padding: '28px 28px', overflowY: 'auto' }}>
           <Outlet />
         </main>
       </div>

@@ -1,133 +1,171 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DISTRICTS, SCENARIOS } from '@/config/constants';
-import MetricBadge from '@/components/ui/MetricBadge';
+
+const INPUT_STYLE = {
+  width: '100%', background: 'var(--app-bg)',
+  border: '1px solid var(--panel-border)', borderRadius: 10,
+  padding: '9px 14px', fontSize: '0.85rem', color: 'var(--text-main)',
+  outline: 'none', fontFamily: 'Inter, system-ui, sans-serif',
+};
+
+function CompareBar({ label, before, after, unit = '', color }) {
+  const pct = b => {
+    const max = Math.max(before, after) * 1.2;
+    return Math.max(4, (b / max) * 100);
+  };
+  const delta = ((after - before) / before * 100).toFixed(1);
+  const improved = after < before;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      style={{
+        background: 'var(--panel-bg)', backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid var(--panel-border)',
+        borderRadius: 14, padding: '18px 20px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, alignItems: 'flex-start' }}>
+        <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-main)' }}>{label}</div>
+        <span style={{
+          fontSize: '0.72rem', fontWeight: 700, padding: '3px 10px', borderRadius: 50,
+          background: improved ? 'rgba(46,213,115,0.12)' : 'rgba(255,71,87,0.12)',
+          color: improved ? '#2ED573' : '#FF4757',
+        }}>{improved ? '↓' : '↑'} {Math.abs(delta)}%</span>
+      </div>
+
+      {/* Before bar */}
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 5 }}>
+          <span>Before</span><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>{typeof before === 'number' && before < 1 ? before.toFixed(2) : before}{unit}</span>
+        </div>
+        <div style={{ height: 6, background: 'var(--panel-border)', borderRadius: 4, overflow: 'hidden' }}>
+          <motion.div initial={{ width: 0 }} animate={{ width: `${pct(before)}%` }} transition={{ duration: 0.8, delay: 0.2 }}
+            style={{ height: '100%', background: 'rgba(255,255,255,0.25)', borderRadius: 4 }} />
+        </div>
+      </div>
+      {/* After bar */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 5 }}>
+          <span>After</span><span style={{ fontWeight: 700, color }}>{typeof after === 'number' && after < 1 ? after.toFixed(2) : after}{unit}</span>
+        </div>
+        <div style={{ height: 6, background: 'var(--panel-border)', borderRadius: 4, overflow: 'hidden' }}>
+          <motion.div initial={{ width: 0 }} animate={{ width: `${pct(after)}%` }} transition={{ duration: 0.9, delay: 0.4 }}
+            style={{ height: '100%', background: color, borderRadius: 4, boxShadow: `0 0 10px ${color}60` }} />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function Simulator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [sliderVal, setSliderVal] = useState(25);
 
-  const handleSimulate = (e) => {
+  const handleSimulate = e => {
     e.preventDefault();
     setLoading(true);
+    setResult(null);
     setTimeout(() => {
+      const r = sliderVal / 100;
       setResult({
         metrics: [
-          { label: 'Traffic Density', before: 0.80, after: 0.80 - (0.80 * (sliderVal/100)), type: 'improvement' },
-          { label: 'AQI Index', before: 160, after: Math.round(160 - (160 * (sliderVal/200))), type: 'improvement' },
-          { label: 'Economic Impact', before: 100, after: 100 - (sliderVal/5), type: 'deterioration' }
+          { label: 'Traffic Density', before: 0.80, after: parseFloat((0.80 - 0.80 * r * 0.7).toFixed(2)), color: '#FF6B6B' },
+          { label: 'AQI Index',       before: 160,  after: Math.round(160 - 160 * r * 0.5),                color: '#6C5CE7' },
+          { label: 'Energy (GWh)',    before: 4.2,  after: parseFloat((4.2 - 4.2 * r * 0.3).toFixed(2)),  color: '#FDCB6E' },
         ],
-        recommendation: `Implementing this policy at ${sliderVal}% intensity yields significant environmental benefits but carries a minor economic penalty. Recommended to phase in over 6 months.`
+        rec: `Implementing this policy at ${sliderVal}% intensity yields meaningful environmental gains. Recommend a phased 6-month rollout to mitigate economic disruption.`,
       });
       setLoading(false);
     }, 1200);
   };
 
   return (
-    <div className="space-y-6">
-      
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-text-primary tracking-tight flex items-center gap-2">
-          <span className="text-um-primary">🧪</span> Policy Simulation Lab
-        </h1>
-        <p className="text-sm text-text-muted mt-1">Test governance scenarios using digital twin algorithms</p>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6">
-        
-        {/* Input Form */}
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="w-full lg:w-96 shrink-0">
-          <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-lg">
-            <h3 className="text-lg font-bold text-text-primary mb-5">Scenario Parameters</h3>
-            <form onSubmit={handleSimulate} className="space-y-5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 20, alignItems: 'start' }}>
+        {/* Controls */}
+        <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
+          <div style={{
+            background: 'var(--panel-bg)', backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--panel-border)',
+            borderRadius: 18, padding: 24, boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
+          }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A29BFE', marginBottom: 16 }}>⚗ Scenario Parameters</div>
+            <form onSubmit={handleSimulate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label className="block text-xs font-bold text-text-muted uppercase mb-1.5">Target District</label>
-                <select className="w-full bg-dark-surface border border-dark-border rounded-lg px-4 py-2.5 text-sm text-text-primary focus:border-um-primary/50 outline-none">
-                  {DISTRICTS.map(d => <option key={d}>{d}</option>)}
-                </select>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Target District</label>
+                <select style={INPUT_STYLE}>{DISTRICTS.map(d => <option key={d} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{d}</option>)}</select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-text-muted uppercase mb-1.5">Policy Action</label>
-                <select className="w-full bg-dark-surface border border-dark-border rounded-lg px-4 py-2.5 text-sm text-text-primary focus:border-um-primary/50 outline-none">
-                  {SCENARIOS.map(s => <option key={s}>{s}</option>)}
-                </select>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Policy Action</label>
+                <select style={INPUT_STYLE}>{SCENARIOS.map(s => <option key={s} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{s}</option>)}</select>
               </div>
               <div>
-                <label className="flex justify-between text-xs font-bold text-text-muted uppercase mb-1.5">
-                  <span>Intensity / Reduction Target</span>
-                  <span className="text-um-primary">{sliderVal}%</span>
-                </label>
-                <input 
-                  type="range" min="5" max="50" step="5" 
-                  value={sliderVal} onChange={e => setSliderVal(e.target.value)}
-                  className="w-full accent-um-primary h-1.5 bg-dark-surface rounded-lg appearance-none cursor-pointer"
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Intensity</label>
+                  <span style={{ fontSize: '1rem', fontWeight: 900, color: '#A29BFE' }}>{sliderVal}%</span>
+                </div>
+                <input type="range" min="5" max="50" step="5" value={sliderVal}
+                  onChange={e => setSliderVal(+e.target.value)}
+                  style={{ width: '100%', accentColor: '#A29BFE' }}
                 />
-                <div className="flex justify-between text-[0.65rem] text-text-muted mt-1 font-bold">
-                  <span>5% (Mild)</span>
-                  <span>50% (Aggressive)</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                  <span>5% Mild</span><span>50% Aggressive</span>
                 </div>
               </div>
-              
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full mt-4 bg-um-primary hover:bg-um-primary-dark disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all hover:shadow-[0_4px_12px_rgba(181,18,27,0.3)] flex justify-center items-center gap-2"
-              >
-                {loading ? <span className="animate-pulse">Running Simulation...</span> : 'Execute Simulation'}
-              </button>
+              <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                style={{
+                  padding: '12px 0', marginTop: 8,
+                  background: loading ? 'var(--panel-border)' : 'linear-gradient(135deg, #6C5CE7, #A29BFE)',
+                  border: 'none', borderRadius: 12, color: '#fff',
+                  fontWeight: 700, fontSize: '0.88rem', cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: loading ? 'none' : '0 4px 20px rgba(162,155,254,0.4)',
+                }}
+              >{loading ? '⟳  Simulating...' : 'Execute Simulation'}</motion.button>
             </form>
           </div>
         </motion.div>
 
-        {/* Results Panel */}
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex-1 flex flex-col gap-6">
-          
+        {/* Results */}
+        <AnimatePresence mode="wait">
           {result ? (
-            <div className="bg-dark-card border border-dark-border rounded-2xl p-6 shadow-lg h-full relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-um-primary/10 rounded-full blur-3xl"></div>
-              
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-text-primary">Impact Analysis Result</h3>
-                <button className="text-xs font-bold text-um-primary bg-um-primary/10 hover:bg-um-primary/20 transition-colors px-3 py-1.5 rounded-lg border border-um-primary/20">
-                  Save PDF Report
-                </button>
+            <motion.div key="result" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+            >
+              <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#64748B' }}>Before → After Impact</div>
+              {result.metrics.map((m, i) => <CompareBar key={i} {...m} />)}
+              {/* Recommendation */}
+              <div style={{
+                background: 'rgba(253,203,110,0.06)', border: '1px solid rgba(253,203,110,0.18)',
+                borderRadius: 14, padding: '16px 20px',
+                display: 'flex', gap: 12, alignItems: 'flex-start',
+              }}>
+                <span style={{ fontSize: '1.3rem' }}>💡</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#FDCB6E', marginBottom: 4 }}>AI Recommendation</div>
+                  <p style={{ fontSize: '0.8rem', color: '#94A3B8', lineHeight: 1.6 }}>{result.rec}</p>
+                </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {result.metrics.map((m, i) => (
-                  <div key={i} className="bg-dark-surface p-4 rounded-xl border border-dark-border flex flex-col justify-center items-center text-center relative pointer-events-none hover:border-um-primary/50 transition-colors pointer-events-auto">
-                    <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">{m.label}</div>
-                    <div className="flex items-center justify-center gap-4 w-full">
-                      <div className="text-xl font-bold text-text-secondary">{typeof m.before === 'number' && m.before < 1 ? m.before.toFixed(2) : m.before}</div>
-                      <div className="text-sm text-text-muted">→</div>
-                      <div className="text-2xl font-black text-text-primary">{typeof m.after === 'number' && m.after < 1 ? m.after.toFixed(2) : m.after}</div>
-                    </div>
-                    <div className="mt-3">
-                      <MetricBadge type={m.type} value={`${Math.abs(Math.round(((m.after - m.before) / m.before) * 100))}%`} label="Delta" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-dark-surface/50 border border-dark-border rounded-xl p-5">
-                <h4 className="text-sm font-bold text-text-primary mb-2 flex items-center gap-2">
-                  <span className="text-status-warning">💡</span> AI System Recommendation
-                </h4>
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  {result.recommendation}
-                </p>
-              </div>
-            </div>
+            </motion.div>
           ) : (
-            <div className="bg-dark-surface border border-dark-border border-dashed rounded-2xl h-[400px] flex flex-col items-center justify-center p-10 text-center">
-              <div className="w-16 h-16 bg-dark-bg rounded-2xl flex items-center justify-center text-2xl mb-4 border border-dark-border">🧪</div>
-              <h3 className="text-lg font-bold text-text-primary mb-2">Simulation Sandbox Empty</h3>
-              <p className="text-sm text-text-secondary max-w-sm">Use the controls to model the impact of various municipal policies on the city's overall ecosystem before implementation.</p>
-            </div>
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                height: 400, borderRadius: 18, border: '1px dashed var(--panel-border)',
+                background: 'var(--panel-bg)', textAlign: 'center', gap: 12,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.05)'
+              }}
+            >
+              <div style={{ fontSize: '2.8rem' }}>⚗</div>
+              <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>Simulation Sandbox Empty</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', maxWidth: 300 }}>Configure a scenario and run the simulation to see animated before/after impact analysis.</div>
+            </motion.div>
           )}
-
-        </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

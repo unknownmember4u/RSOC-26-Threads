@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import useGlobalStore from '@/state/globalStore';
 import DashboardLayout from './components/layout/DashboardLayout';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
@@ -9,12 +10,20 @@ import Clusters from './pages/Clusters';
 import Simulator from './pages/Simulator';
 import Chat from './pages/Chat';
 import LiveFeed from './pages/LiveFeed';
+import Login from './pages/Login';
+
+function ProtectedRoute({ children }) {
+  const isAuthenticated = useGlobalStore(state => state.isAuthenticated);
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+}
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route element={<DashboardLayout />}>
+      <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/predictions" element={<Predictions />} />

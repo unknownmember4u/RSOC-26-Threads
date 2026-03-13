@@ -1,22 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --app-bg: #f8fafc;
+  --panel-bg: rgba(255, 255, 255, 0.9);
+  --panel-glass: rgba(255, 255, 255, 0.7);
+  --panel-border: rgba(132, 177, 121, 0.35);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --brand-solid: #5e8a54;
+  --sidebar-bg: rgba(255, 255, 255, 0.95);
+  --topbar-bg: rgba(255, 255, 255, 0.85);
+}
+
+.dark {
+  --app-bg: #000000;
+  --panel-bg: rgba(10, 10, 10, 0.85);
+  --panel-glass: rgba(15, 15, 15, 0.65);
+  --panel-border: rgba(132, 177, 121, 0.2);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --brand-solid: #84b179;
+  --sidebar-bg: rgba(5, 5, 5, 0.97);
+  --topbar-bg: rgba(0, 0, 0, 0.88);
+}
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: #0E1117;
-  color: #F1F5F9;
+  background: var(--app-bg);
+  color: var(--text-main);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.25s, color 0.25s;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0E1117; }
-::-webkit-scrollbar-thumb { background: #2D3348; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3D4560; }
 
-/* Plotly dark override */
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #243320; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #84B179; }
+
+/* ── Glass utility ── */
+.glass {
+  background: rgba(16, 26, 14, 0.55);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(132, 177, 121, 0.12);
+}
+
+/* ── Input focus ── */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: rgba(132, 177, 121, 0.45) !important;
+  box-shadow: 0 0 0 2px rgba(132, 177, 121, 0.08);
+}
+
+/* ── Select option dark ── */
+select option { background: #111A0F; color: #F1F5F9; }
+
+/* ── Animations ── */
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  70%  { transform: scale(1.4);  opacity: 0; }
+  100% { transform: scale(1.4);  opacity: 0; }
+}
+@keyframes lp-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)} }
+@keyframes float     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes pulse     {
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(132,177,121,0.4)}
+  50%    {opacity:.7;box-shadow:0 0 0 6px rgba(132,177,121,0)}
+}
+@keyframes pulse-dot { 0%,100%{opacity:.5} 50%{opacity:1} }
+@keyframes shimmer   {
+  0%  {background-position:-200% center}
+  100%{background-position: 200% center}
+}
+@keyframes slide-in-right {
+  from{transform:translateX(20px);opacity:0}
+  to  {transform:translateX(0);opacity:1}
+}
+
+.animate-bounce-down { animation: lp-bounce 1.8s ease-in-out infinite; }
+.animate-float       { animation: float 5s ease-in-out infinite; }
+
+/* ── Sidebar icon rail ── */
+.sidebar-icon-rail {
+  width: 68px;
+  background: rgba(8, 12, 7, 0.96);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(132, 177, 121, 0.08);
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  display: flex; flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  z-index: 60;
+}
+
+/* ── Sidebar tooltip on hover ── */
+a:hover .nav-tooltip {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+
+/* ── Plotly dark override ── */
 .js-plotly-plot .plotly .main-svg { background: transparent !important; }

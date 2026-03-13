@@ -1,87 +1,111 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BarChart3, Map, Sparkles, Bell, Brain, FlaskConical, MessageSquare, Radio, ChevronDown } from 'lucide-react';
-import { NAV_ITEMS, DISTRICTS } from '@/config/constants';
-import useGlobalStore from '@/state/globalStore';
+import Logo from '@/components/ui/Logo';
 
-const ICONS = { BarChart3, Map, Sparkles, Bell, Brain, FlaskConical, MessageSquare, Radio };
+const NAV = [
+  { path: '/dashboard',  label: 'Dashboard',  emoji: '⎈', color: '#FDCB6E' },
+  { path: '/map',        label: 'Map',         emoji: '🗺', color: '#74B9FF' },
+  { path: '/predictions',label: 'Predictions', emoji: '✦',  color: '#6C5CE7' },
+  { path: '/alerts',     label: 'Alerts',      emoji: '⚡', color: '#FF6B6B' },
+  { path: '/clusters',   label: 'Clusters',    emoji: '◉',  color: '#55EFC4' },
+  { path: '/simulator',  label: 'Simulator',   emoji: '⚗',  color: '#A29BFE' },
+  { path: '/chat',       label: 'AI Chat',     emoji: '◈',  color: '#74B9FF' },
+  { path: '/livefeed',   label: 'Live Feed',   emoji: '◎',  color: '#FF6B6B' },
+];
 
 export default function Sidebar() {
   const location = useLocation();
-  const { selectedDistrict, setDistrict } = useGlobalStore();
+  const navigate  = useNavigate();
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-dark-card border-r border-dark-border flex flex-col z-50">
+    <aside style={{
+      position: 'fixed', left: 0, top: 0, bottom: 0, width: 68,
+      background: 'var(--sidebar-bg)',
+      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+      borderRight: '1px solid var(--panel-border)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      padding: '16px 0', zIndex: 60, gap: 4,
+    }}>
+      {/* Brand icon — clicks go home */}
+      <button
+        onClick={() => navigate('/')}
+        title="NagarMitra — Go Home"
+        style={{
+          width: 42, height: 42, borderRadius: 12, border: 'none', cursor: 'pointer',
+          background: 'transparent', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', marginBottom: 8, flexShrink: 0,
+        }}
+      >
+        <Logo size={30} />
+      </button>
 
-      {/* Logo */}
-      <div className="px-6 py-6 border-b border-dark-border">
-        <a href="/" className="flex items-center gap-3 no-underline">
-          <div className="w-9 h-9 bg-um-primary rounded-lg flex items-center justify-center text-white text-sm font-black tracking-tighter">
-            UM
-          </div>
-          <div>
-            <div className="text-text-primary font-extrabold text-lg tracking-tight leading-none">UrbanMind</div>
-            <div className="text-text-muted text-[0.65rem] font-medium tracking-wider uppercase">Smart City Analytics</div>
-          </div>
-        </a>
-      </div>
+      <div style={{ width: 26, height: 1, background: 'rgba(132,177,121,0.10)', marginBottom: 4 }} />
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <div className="text-text-muted text-[0.65rem] font-bold tracking-widest uppercase px-3 mb-3">Navigation</div>
-        <ul className="space-y-1 list-none p-0 m-0">
-          {NAV_ITEMS.map((item) => {
-            const Icon = ICONS[item.icon];
-            const isActive = location.pathname === item.path;
-            return (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 no-underline
-                    ${isActive
-                      ? 'bg-um-primary/15 text-um-primary'
-                      : 'text-text-secondary hover:bg-dark-surface hover:text-text-primary'
-                    }`}
-                >
-                  {Icon && <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />}
-                  {item.label}
-                  {isActive && (
-                    <motion.div
-                      layoutId="sidebar-indicator"
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-um-primary"
-                    />
-                  )}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      {/* Nav icons */}
+      {NAV.map(item => {
+        const isActive = location.pathname === item.path;
+        return (
+          <NavLinkIcon key={item.path} item={item} isActive={isActive} />
+        );
+      })}
 
-      {/* Bottom Controls */}
-      <div className="px-4 py-4 border-t border-dark-border space-y-3">
-        {/* District Selector */}
-        <div>
-          <label className="text-text-muted text-[0.65rem] font-bold tracking-wider uppercase block mb-1.5">District</label>
-          <div className="relative">
-            <select
-              value={selectedDistrict}
-              onChange={(e) => setDistrict(e.target.value)}
-              className="w-full bg-dark-surface border border-dark-border rounded-lg px-3 py-2 text-sm text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-um-primary/50 transition-colors"
-            >
-              {DISTRICTS.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Refresh */}
-        <button className="w-full bg-dark-surface hover:bg-um-primary/15 border border-dark-border hover:border-um-primary/30 rounded-lg px-3 py-2 text-sm text-text-secondary hover:text-um-primary transition-all duration-200 font-medium">
-          ↻ Refresh Data
-        </button>
-      </div>
+      {/* Bottom spacer */}
+      <div style={{ flex: 1 }} />
+      <div style={{
+        width: 36, height: 36, borderRadius: '50%',
+        background: 'var(--panel-border)',
+        border: '1px solid var(--panel-border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '0.7rem', color: 'var(--text-main)', fontWeight: 700,
+        cursor: 'default',
+      }}>OP</div>
     </aside>
+  );
+}
+
+function NavLinkIcon({ item, isActive }) {
+  return (
+    <NavLink to={item.path} style={{ textDecoration: 'none', position: 'relative' }}>
+      <motion.div
+        whileHover={{ scale: 1.12 }}
+        whileTap={{ scale: 0.92 }}
+        title={item.label}
+        style={{
+          width: 42, height: 42, borderRadius: 12,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '1.15rem',
+          background: isActive ? 'rgba(132,177,121,0.15)' : 'transparent',
+          border: isActive ? '1px solid rgba(132,177,121,0.35)' : '1px solid transparent',
+          position: 'relative',
+          cursor: 'pointer',
+          transition: 'background 0.2s, border 0.2s',
+        }}
+      >
+        {item.emoji}
+        {isActive && (
+          <motion.div
+            layoutId="sidebar-pill"
+            style={{
+              position: 'absolute', left: -14, top: '50%', transform: 'translateY(-50%)',
+              width: 3, height: 20, borderRadius: 2,
+              background: item.color,
+            }}
+          />
+        )}
+        {/* Tooltip */}
+        <div style={{
+          position: 'absolute', left: '100%', marginLeft: 12,
+          background: 'var(--panel-bg)', border: '1px solid var(--panel-border)',
+          color: 'var(--text-main)', fontSize: '0.73rem', fontWeight: 600,
+          padding: '5px 10px', borderRadius: 8,
+          whiteSpace: 'nowrap', pointerEvents: 'none',
+          opacity: 0, transition: 'opacity 0.15s',
+          zIndex: 200,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+        }}
+        className="nav-tooltip"
+        >{item.label}</div>
+      </motion.div>
+    </NavLink>
   );
 }
