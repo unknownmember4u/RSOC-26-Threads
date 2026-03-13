@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DISTRICTS, SCENARIOS } from '@/config/constants';
+import { api } from '../api/urbanmindAPI';
 
 const INPUT_STYLE = {
   width: '100%', background: 'var(--app-bg)',
@@ -14,8 +15,9 @@ function CompareBar({ label, before, after, unit = '', color }) {
     const max = Math.max(before, after) * 1.2;
     return Math.max(4, (b / max) * 100);
   };
-  const delta = ((after - before) / before * 100).toFixed(1);
-  const improved = after < before;
+  const diff = after - before;
+  const delta = (before !== 0 ? (diff / before * 100) : 0).toFixed(1);
+  const improved = diff < 0; 
 
   return (
     <motion.div
@@ -37,23 +39,21 @@ function CompareBar({ label, before, after, unit = '', color }) {
         }}>{improved ? '↓' : '↑'} {Math.abs(delta)}%</span>
       </div>
 
-      {/* Before bar */}
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 5 }}>
-          <span>Before</span><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>{typeof before === 'number' && before < 1 ? before.toFixed(2) : before}{unit}</span>
+          <span>Current</span><span style={{ fontWeight: 700, color: 'var(--text-muted)' }}>{typeof before === 'number' && before < 1 ? before.toFixed(2) : before}{unit}</span>
         </div>
         <div style={{ height: 6, background: 'var(--panel-border)', borderRadius: 4, overflow: 'hidden' }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${pct(before)}%` }} transition={{ duration: 0.8, delay: 0.2 }}
-            style={{ height: '100%', background: 'rgba(255,255,255,0.25)', borderRadius: 4 }} />
+          <motion.div initial={{ width: 0 }} animate={{ width: `${pct(before)}%` }} transition={{ duration: 0.8 }}
+            style={{ height: '100%', background: 'var(--panel-border)', borderRadius: 4 }} />
         </div>
       </div>
-      {/* After bar */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 5 }}>
-          <span>After</span><span style={{ fontWeight: 700, color }}>{typeof after === 'number' && after < 1 ? after.toFixed(2) : after}{unit}</span>
+          <span>Projected</span><span style={{ fontWeight: 700, color }}>{typeof after === 'number' && after < 1 ? after.toFixed(2) : after}{unit}</span>
         </div>
         <div style={{ height: 6, background: 'var(--panel-border)', borderRadius: 4, overflow: 'hidden' }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${pct(after)}%` }} transition={{ duration: 0.9, delay: 0.4 }}
+          <motion.div initial={{ width: 0 }} animate={{ width: `${pct(after)}%` }} transition={{ duration: 0.9, delay: 0.2 }}
             style={{ height: '100%', background: color, borderRadius: 4, boxShadow: `0 0 10px ${color}60` }} />
         </div>
       </div>
@@ -65,23 +65,36 @@ export default function Simulator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [sliderVal, setSliderVal] = useState(25);
+  const [selection, setSelection] = useState({
+    district: DISTRICTS[0],
+    policy: SCENARIOS[0]
+  });
 
-  const handleSimulate = e => {
+  const handleSimulate = async (e) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
-    setTimeout(() => {
-      const r = sliderVal / 100;
-      setResult({
-        metrics: [
-          { label: 'Traffic Density', before: 0.80, after: parseFloat((0.80 - 0.80 * r * 0.7).toFixed(2)), color: '#FF6B6B' },
-          { label: 'AQI Index',       before: 160,  after: Math.round(160 - 160 * r * 0.5),                color: '#6C5CE7' },
-          { label: 'Energy (GWh)',    before: 4.2,  after: parseFloat((4.2 - 4.2 * r * 0.3).toFixed(2)),  color: '#FDCB6E' },
-        ],
-        rec: `Implementing this policy at ${sliderVal}% intensity yields meaningful environmental gains. Recommend a phased 6-month rollout to mitigate economic disruption.`,
+    try {
+      const scenarioKey = selection.policy.toLowerCase().replace(/ /g, '_');
+      const data = await api.simulate({
+        district_id: selection.district,
+        change: scenarioKey,
+        percent: sliderVal
       });
+
+      // Transform backend simulation format to frontend list
+      const metrics = [
+        { label: 'Traffic Density', before: data.original_values.traffic_density, after: data.simulated_values.traffic_density, color: '#FF6B6B' },
+        { label: 'AQI Index',       before: data.original_values.aqi,             after: data.simulated_values.aqi,             color: '#6C5CE7' },
+        { label: 'Energy Load',     before: data.original_values.consumption_kwh, after: data.simulated_values.consumption_kwh, color: '#FDCB6E' },
+      ];
+
+      setResult({ metrics, rec: data.recommendation });
+    } catch (err) {
+      console.error("Simulation error:", err);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -94,24 +107,36 @@ export default function Simulator() {
             WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--panel-border)',
             borderRadius: 18, padding: 24, boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
           }}>
-            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A29BFE', marginBottom: 16 }}>⚗ Scenario Parameters</div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#84B179', marginBottom: 16 }}>⚗ Scenario Parameters</div>
             <form onSubmit={handleSimulate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Target District</label>
-                <select style={INPUT_STYLE}>{DISTRICTS.map(d => <option key={d} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{d}</option>)}</select>
+                <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Target Zone</label>
+                <select 
+                  style={INPUT_STYLE} 
+                  value={selection.district}
+                  onChange={e => setSelection({...selection, district: e.target.value})}
+                >
+                  {DISTRICTS.map(d => <option key={d} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{d}</option>)}
+                </select>
               </div>
               <div>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Policy Action</label>
-                <select style={INPUT_STYLE}>{SCENARIOS.map(s => <option key={s} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{s}</option>)}</select>
+                <select 
+                  style={INPUT_STYLE}
+                  value={selection.policy}
+                  onChange={e => setSelection({...selection, policy: e.target.value})}
+                >
+                  {SCENARIOS.map(s => <option key={s} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{s}</option>)}
+                </select>
               </div>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Intensity</label>
-                  <span style={{ fontSize: '1rem', fontWeight: 900, color: '#A29BFE' }}>{sliderVal}%</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 900, color: '#84B179' }}>{sliderVal}%</span>
                 </div>
                 <input type="range" min="5" max="50" step="5" value={sliderVal}
                   onChange={e => setSliderVal(+e.target.value)}
-                  style={{ width: '100%', accentColor: '#A29BFE' }}
+                  style={{ width: '100%', accentColor: '#84B179' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: 4 }}>
                   <span>5% Mild</span><span>50% Aggressive</span>
@@ -120,10 +145,10 @@ export default function Simulator() {
               <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                 style={{
                   padding: '12px 0', marginTop: 8,
-                  background: loading ? 'var(--panel-border)' : 'linear-gradient(135deg, #6C5CE7, #A29BFE)',
+                  background: loading ? 'var(--panel-border)' : 'linear-gradient(135deg, #84B179, #5e8a54)',
                   border: 'none', borderRadius: 12, color: '#fff',
                   fontWeight: 700, fontSize: '0.88rem', cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: loading ? 'none' : '0 4px 20px rgba(162,155,254,0.4)',
+                  boxShadow: loading ? 'none' : '0 4px 20px rgba(132,177,121,0.3)',
                 }}
               >{loading ? '⟳  Simulating...' : 'Execute Simulation'}</motion.button>
             </form>
@@ -140,14 +165,14 @@ export default function Simulator() {
               {result.metrics.map((m, i) => <CompareBar key={i} {...m} />)}
               {/* Recommendation */}
               <div style={{
-                background: 'rgba(253,203,110,0.06)', border: '1px solid rgba(253,203,110,0.18)',
+                background: 'rgba(132,177,121,0.06)', border: '1px solid rgba(132,177,121,0.18)',
                 borderRadius: 14, padding: '16px 20px',
                 display: 'flex', gap: 12, alignItems: 'flex-start',
               }}>
                 <span style={{ fontSize: '1.3rem' }}>💡</span>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#FDCB6E', marginBottom: 4 }}>AI Recommendation</div>
-                  <p style={{ fontSize: '0.8rem', color: '#94A3B8', lineHeight: 1.6 }}>{result.rec}</p>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#84B179', marginBottom: 4 }}>AI Recommendation</div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>{result.rec}</p>
                 </div>
               </div>
             </motion.div>

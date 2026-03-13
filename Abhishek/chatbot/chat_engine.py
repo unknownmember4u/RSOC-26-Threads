@@ -202,13 +202,23 @@ class UrbanChatEngine:
 
         prompt = (
             "You are UrbanMind AI analyzing a smart city analytics "
-            "chart for Pune, India. Explain this chart to a city "
+            "chart. Explain this chart to a city "
             "administrator in exactly 3-4 sentences:\n"
             "1. What metric is shown and the current trend\n"
             "2. The most important anomaly or pattern visible\n"
             "3. One specific actionable recommendation\n"
             "Be concise, data-driven, mention district names if visible."
         )
-        image_part = {"mime_type": "image/png", "data": image_bytes}
-        response = self.gemini_model.generate_content([prompt, image_part])
-        return response.text
+        
+        try:
+            import io
+            from PIL import Image
+            
+            # Wrap raw bytes in a Pillow Image object for the SDK
+            image_obj = Image.open(io.BytesIO(image_bytes))
+            
+            response = self.gemini_model.generate_content([prompt, image_obj])
+            return response.text
+        except Exception as e:
+            print(f"[!!] Gemini Vision Error: {str(e)}")
+            return f"Error analyzing chart: {str(e)}"

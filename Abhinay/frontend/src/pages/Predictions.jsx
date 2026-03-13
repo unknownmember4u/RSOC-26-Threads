@@ -4,6 +4,7 @@ import Plot from 'react-plotly.js';
 import ChartCard from '@/components/ui/ChartCard';
 import { DISTRICTS } from '@/config/constants';
 import { COLORS, CHART_LAYOUT, CHART_CONFIG } from '@/utils/chartHelpers';
+import { api } from '../api/urbanmindAPI';
 
 const TABS = [
   { key: 'Traffic',    color: '#FF6B6B', icon: '🚦' },
@@ -23,21 +24,38 @@ export default function Predictions() {
   const [tab, setTab] = useState('Traffic');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [formData, setFormData] = useState({
+    district: DISTRICTS[0],
+    hour: "14",
+    temp: "32",
+    weather: "Clear"
+  });
+
   const currentTab = TABS.find(t => t.key === tab);
 
-  const handlePredict = e => {
+  const handlePredict = async (e) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
-    setTimeout(() => {
-      setResult({
-        value: tab === 'Traffic' ? '0.86' : tab === 'Pollution' ? '145' : '92%',
-        confidence: 88,
-        level: tab === 'Traffic' ? 'Critical' : 'Warning',
-        forecast: [0.75, 0.82, 0.86, 0.80],
-      });
+    try {
+      const inputs = {
+        district_id: formData.district,
+        hour: parseInt(formData.hour),
+        temperature: parseFloat(formData.temp),
+        weather_main: formData.weather
+      };
+
+      let data;
+      if (tab === 'Traffic') data = await api.predictTraffic(inputs);
+      else if (tab === 'Pollution') data = await api.predictPollution(inputs);
+      else data = await api.predictTransport(inputs);
+
+      setResult(data);
+    } catch (err) {
+      console.error("Prediction error:", err);
+    } finally {
       setLoading(false);
-    }, 900);
+    }
   };
 
   return (
@@ -74,23 +92,41 @@ export default function Predictions() {
             <form onSubmit={handlePredict} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>District</label>
-                <select style={INPUT_STYLE}>
+                <select 
+                  style={INPUT_STYLE} 
+                  value={formData.district} 
+                  onChange={e => setFormData({...formData, district: e.target.value})}
+                >
                   {DISTRICTS.map(d => <option key={d} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{d}</option>)}
                 </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
                   <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Hour (0–23)</label>
-                  <input type="number" min="0" max="23" defaultValue="14" style={INPUT_STYLE} />
+                  <input 
+                    type="number" min="0" max="23" 
+                    style={INPUT_STYLE} 
+                    value={formData.hour}
+                    onChange={e => setFormData({...formData, hour: e.target.value})}
+                  />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Temp (°C)</label>
-                  <input type="number" defaultValue="32" style={INPUT_STYLE} />
+                  <input 
+                    type="number" 
+                    style={INPUT_STYLE} 
+                    value={formData.temp}
+                    onChange={e => setFormData({...formData, temp: e.target.value})}
+                  />
                 </div>
               </div>
               <div>
                 <label style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>Weather</label>
-                <select style={INPUT_STYLE}>
+                <select 
+                  style={INPUT_STYLE}
+                  value={formData.weather}
+                  onChange={e => setFormData({...formData, weather: e.target.value})}
+                >
                   {['Clear','Rainy','Cloudy','Foggy'].map(w => <option key={w} style={{ background: 'var(--app-bg)', color: 'var(--text-main)' }}>{w}</option>)}
                 </select>
               </div>
@@ -119,28 +155,37 @@ export default function Predictions() {
                 {/* 3 KPI result cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
                   {[
-                    { label: `Predicted ${tab}`, val: result.value, color: result.level === 'Critical' ? '#FF4757' : '#FFA502' },
-                    { label: 'Confidence',         val: `${result.confidence}%`, color: '#2ED573' },
-                    { label: 'Risk Level',          val: result.level, color: result.level === 'Critical' ? '#FF4757' : '#FFA502' },
+                    { label: `Predicted Value`, val: typeof result.prediction === 'number' ? result.prediction.toFixed(2) : result.prediction, color: currentTab.color },
+                    { label: 'Model Confidence', val: `${(result.confidence * 100).toFixed(0)}%`, color: '#2ED573' },
+                    { label: 'Infrastructure Load', val: result.status || 'Normal', color: result.status === 'Critical' ? '#FF4757' : '#FFA502' },
                   ].map((card, i) => (
                     <div key={i} style={{
                       background: 'var(--panel-bg)', border: '1px solid var(--panel-border)',
                       borderRadius: 16, padding: '20px', textAlign: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.05)'
                     }}>
                       <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>{card.label}</div>
-                      <div style={{ fontSize: '2rem', fontWeight: 900, color: card.color, letterSpacing: '-0.5px' }}>{card.val}</div>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 900, color: card.color, letterSpacing: '-0.5px' }}>{card.val}</div>
                     </div>
                   ))}
                 </div>
 
-                <ChartCard title={`${tab} Forecast — Next 3 Hours`} accentColor={currentTab.color} delay={1}>
+                <ChartCard title={`${tab} Comparison — Actual vs Predicted`} accentColor={currentTab.color} delay={1}>
                   <Plot
                     data={[
-                      { x: ['Now', '+1h', '+2h', '+3h'], y: result.forecast, type: 'scatter', mode: 'lines+markers', name: 'Predicted', line: { color: currentTab.color, width: 3, shape: 'spline' }, marker: { size: 8 }, fill: 'tozeroy', fillcolor: `${currentTab.color}15` },
+                      { 
+                        x: ['Baseline', 'Forecast'], 
+                        y: [result.actual_avg || 0.5, result.prediction || 0.8], 
+                        type: 'bar', 
+                        name: 'Load', 
+                        marker: { color: [ 'var(--panel-border)', currentTab.color ] } 
+                      },
                     ]}
                     layout={{ ...CHART_LAYOUT, height: 260 }}
                     config={CHART_CONFIG} className="w-full"
                   />
+                  <div style={{ padding: '0 20px 20px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    * Model insight: {result.recommendation || "Maintain current grid stability."}
+                  </div>
                 </ChartCard>
               </motion.div>
             ) : (

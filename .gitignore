@@ -1,24 +1,9 @@
-# Node
-node_modules/
-dist/
-dist-ssr/
-*.local
 .env
-.env.*
-
-# Python
+firebase_credentials.json
+*.pkl
 __pycache__/
-*.py[cod]
-*$py.class
-venv/
-.venv/
-env/
-.env/
-
-# IDEs
-.vscode/
-.idea/
-
-# OS
+node_modules/
 .DS_Store
-Thumbs.db
+Vaishnavi/output/
+Abhishek/saved_models/
+Abhishek/output/

@@ -102,6 +102,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount the dashboard data router
+from api.dashboard_router import router as dashboard_router
+app.include_router(dashboard_router, prefix="/api")
+
 # Global references (populated on startup)
 _state: Dict[str, Any] = {}
 
@@ -340,3 +344,49 @@ async def explain_chart(image: UploadFile = File(...)):
             "error": str(e),
             "model": "gemini-1.5-flash",
         }
+
+
+# -------------- Live Stream ----------------
+
+@app.get("/api/stream/latest")
+async def stream_latest():
+    """Return a completely dynamic, fluctuating live telemetry snapshot."""
+    import time
+    import numpy as np
+    _log("/api/stream/latest")
+    
+    current_window = int(time.time() // 5)
+    
+    try:
+        district_names = {
+            "D01": "New Delhi", "D02": "Mumbai", "D03": "Bengaluru",
+            "D04": "Chennai", "D05": "Kolkata", "D06": "Hyderabad",
+            "D07": "Pune", "D08": "Ahmedabad", "D09": "Jaipur", "D10": "Surat"
+        }
+        
+        districts = []
+        for d_id, d_name in district_names.items():
+            # Seed based on district and the 5-second window
+            seed = (hash(d_id) % 10000) + current_window
+            np.random.seed(seed)
+            
+            # Fluctuate around realistic baselines
+            aqi_val = np.random.uniform(50, 350)
+            traffic_val = np.random.uniform(0.3, 0.95)
+            status = "CRITICAL" if aqi_val > 250 or traffic_val > 0.85 else "NORMAL"
+            
+            districts.append({
+                "district_id": d_id,
+                "name": d_name,
+                "aqi": aqi_val,
+                "traffic_density": traffic_val,
+                "energy_kwh": np.random.uniform(1000, 5000),
+                "transport_load": np.random.uniform(0.4, 0.9),
+                "water_liters": np.random.uniform(20000, 80000),
+                "waste_kg": np.random.uniform(2000, 8000),
+                "status": status,
+            })
+            
+        return districts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
