@@ -406,3 +406,69 @@ async def stream_latest():
         return districts
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/stream/sse")
+async def stream_sse():
+    """True real-time Server-Sent Events (SSE) telemetry stream."""
+    import time
+    import json
+    import asyncio
+    import numpy as np
+    from fastapi.responses import StreamingResponse
+    _log("/api/stream/sse")
+    
+    async def event_generator():
+        district_names = {
+            "D01": "New Delhi", "D02": "Mumbai", "D03": "Bengaluru",
+            "D04": "Chennai", "D05": "Kolkata", "D06": "Hyderabad",
+            "D07": "Pune", "D08": "Ahmedabad", "D09": "Jaipur", "D10": "Surat"
+        }
+        
+        base_metrics = {
+            "D01": {"aqi": 310, "traffic": 0.88, "energy": 4500},
+            "D02": {"aqi": 160, "traffic": 0.92, "energy": 4200},
+            "D03": {"aqi": 120, "traffic": 0.85, "energy": 3800},
+            "D04": {"aqi": 95,  "traffic": 0.75, "energy": 3100},
+            "D05": {"aqi": 180, "traffic": 0.80, "energy": 3500},
+            "D06": {"aqi": 140, "traffic": 0.78, "energy": 3600},
+            "D07": {"aqi": 110, "traffic": 0.65, "energy": 2800},
+            "D08": {"aqi": 190, "traffic": 0.70, "energy": 3300},
+            "D09": {"aqi": 150, "traffic": 0.60, "energy": 2500},
+            "D10": {"aqi": 130, "traffic": 0.68, "energy": 2900},
+        }
+        
+        try:
+            while True:
+                # Calculate new state every 2 seconds
+                current_tick = int(time.time() // 2)
+                districts = []
+                for d_id, d_name in district_names.items():
+                    base = base_metrics[d_id]
+                    np.random.seed((hash(d_id) % 10000) + current_tick)
+                    
+                    current_aqi = max(0.0, base["aqi"] + np.random.uniform(-1.0, 1.0))
+                    current_traffic = max(0.0, min(1.0, base["traffic"] + np.random.uniform(-0.01, 0.01)))
+                    current_energy = base["energy"] + np.random.uniform(-1.0, 1.0)
+                    status = "CRITICAL" if current_aqi > 250 or current_traffic > 0.85 else "NORMAL"
+                    
+                    districts.append({
+                        "district_id": d_id,
+                        "name": d_name,
+                        "aqi": current_aqi,
+                        "traffic_density": current_traffic,
+                        "energy_kwh": current_energy,
+                        "transport_load": np.random.uniform(0.4, 0.9),
+                        "water_liters": np.random.uniform(20000, 80000),
+                        "waste_kg": np.random.uniform(2000, 8000),
+                        "status": status,
+                    })
+                
+                # SSE format strictly requires "data: <json>\n\n"
+                yield f"data: {json.dumps(districts)}\n\n"
+                await asyncio.sleep(2)
+                
+        except asyncio.CancelledError:
+            print("[*] SSE Client disconnected")
+            
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

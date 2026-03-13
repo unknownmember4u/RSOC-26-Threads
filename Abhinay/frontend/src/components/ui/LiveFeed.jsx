@@ -21,24 +21,38 @@ export default function LiveFeed() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchLiveData = async () => {
-      try {
-        const stream = await api.getLiveData()
-        if (Array.isArray(stream)) {
-          setData(stream)
-        } else if (stream.districts) {
-          setData(stream.districts)
+    let sse;
+    const connectSSE = () => {
+      // Direct connection to the SSE streaming API
+      sse = new EventSource("http://localhost:8000/api/stream/sse");
+      
+      sse.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data);
+          if (Array.isArray(parsed)) {
+            setData(parsed);
+          } else if (parsed.districts) {
+            setData(parsed.districts);
+          }
+          setLoading(false);
+        } catch (err) {
+          console.error("Failed to parse SSE data stream:", err);
         }
-        setLoading(false)
-      } catch (err) {
-        console.error("Live feed failed:", err)
-      }
-    }
+      };
 
-    fetchLiveData()
-    const interval = setInterval(fetchLiveData, 5000)
-    return () => clearInterval(interval)
-  }, [])
+      sse.onerror = (err) => {
+        console.error("SSE connection dropped, auto-reconnecting...", err);
+        sse.close();
+        setTimeout(connectSSE, 3000); // 3-second backoff
+      };
+    };
+
+    connectSSE();
+
+    return () => {
+      if (sse) sse.close();
+    };
+  }, []);
 
   if (loading && data.length === 0) {
     return (
