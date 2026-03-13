@@ -39,7 +39,7 @@ class UrbanChatEngine:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=self.gemini_api_key)
-                self.gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+                self.gemini_model = genai.GenerativeModel("gemini-1.5-pro-latest")
                 print("[ok] Gemini model initialised")
             except Exception as e:
                 print(f"[!!] Gemini init failed: {e}")

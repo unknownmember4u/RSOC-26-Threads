@@ -2,6 +2,20 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { api } from "../../api/urbanmindAPI"
 
+function MiniBar({ value, max, color }) {
+  const pct = Math.min(100, (value / max) * 100)
+  return (
+    <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden', marginTop: 3 }}>
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.8 }}
+        style={{ height: '100%', background: color, borderRadius: 2 }}
+      />
+    </div>
+  )
+}
+
 export default function LiveFeed() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -10,7 +24,6 @@ export default function LiveFeed() {
     const fetchLiveData = async () => {
       try {
         const stream = await api.getLiveData()
-        // The endpoint should return a list of 10 districts
         if (Array.isArray(stream)) {
           setData(stream)
         } else if (stream.districts) {
@@ -31,29 +44,32 @@ export default function LiveFeed() {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
         {[...Array(10)].map((_, i) => (
-          <div key={i} style={{ height: 160, background: 'var(--panel-bg)', borderRadius: 16, border: '1px solid var(--panel-border)', opacity: 0.5 }} />
+          <div key={i} style={{ height: 200, background: 'var(--panel-bg)', borderRadius: 18, border: '1px solid var(--panel-border)', opacity: 0.5 }} />
         ))}
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
-      {data.map((district) => {
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: 16 }}>
+      {data.map((district, idx) => {
         const aqi = district.aqi || 0
+        const traffic = district.traffic_density || 0
+        const energy = district.energy_kwh || 0
         const isCritical = aqi > 200 || district.status === 'CRITICAL'
         const statusColor = aqi < 100 ? '#2ED573' : aqi < 200 ? '#FFA502' : '#FF4757'
         
         return (
           <motion.div
             key={district.district_id}
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ 
               opacity: 1, 
-              scale: 1,
-              boxShadow: isCritical ? ['0 0 0px #FF475700', '0 0 15px #FF475744', '0 0 0px #FF475700'] : 'none'
+              y: 0,
+              boxShadow: isCritical ? ['0 0 0px #FF475700', '0 0 20px #FF475744', '0 0 0px #FF475700'] : '0 4px 20px rgba(0,0,0,0.08)'
             }}
             transition={{
+              y: { delay: idx * 0.05 },
               boxShadow: { repeat: Infinity, duration: 1.5 }
             }}
             style={{
@@ -63,51 +79,85 @@ export default function LiveFeed() {
               padding: 20,
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
+              gap: 10,
               position: 'relative',
               overflow: 'hidden'
             }}
           >
-            {/* Status Indicator */}
+            {/* City Name (prominent) + Status dot */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--text-main)' }}>{district.district_id}</div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                {district.name || `Zone ${district.district_id}`}
+              </div>
               <div style={{ 
-                width: 8, height: 8, borderRadius: '50%', background: statusColor,
-                boxShadow: `0 0 8px ${statusColor}`
+                width: 10, height: 10, borderRadius: '50%', background: statusColor,
+                boxShadow: `0 0 10px ${statusColor}88`,
+                animation: isCritical ? 'pulse 1.5s infinite' : 'none'
               }} />
             </div>
 
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              {district.name || `Zone ${district.district_id}`}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🌫️ AQI</span>
-                <span style={{ fontWeight: 800, color: statusColor }}>{Math.round(aqi)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🚦 Traffic</span>
-                <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>{Math.round(district.traffic_density * 100)}%</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>⚡ Energy</span>
-                <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>{Math.round(district.energy_kwh || 0)}</span>
-              </div>
-            </div>
-
-            <div style={{
-              marginTop: 4, padding: '4px 0', fontSize: '0.6rem', fontWeight: 800,
-              textAlign: 'center', borderRadius: 6,
-              background: isCritical ? '#FF475715' : 'rgba(132, 177, 121, 0.08)',
-              color: isCritical ? '#FF4757' : '#84B179',
-              textTransform: 'uppercase', letterSpacing: '0.1em'
+            {/* District ID badge */}
+            <div style={{ 
+              fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700, 
+              textTransform: 'uppercase', letterSpacing: '0.12em',
+              background: 'rgba(255,255,255,0.04)', 
+              padding: '2px 8px', borderRadius: 4, width: 'fit-content'
             }}>
-              {isCritical ? 'CRITICAL ALERT' : 'Normal Status'}
+              {district.district_id}
+            </div>
+
+            {/* Metrics with mini progress bars */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 2 }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🌫️ AQI</span>
+                  <span style={{ fontWeight: 800, fontSize: '0.9rem', color: statusColor }}>{Math.round(aqi)}</span>
+                </div>
+                <MiniBar value={aqi} max={500} color={statusColor} />
+              </div>
+              
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>🚦 Traffic</span>
+                  <span style={{ fontWeight: 800, color: traffic > 0.85 ? '#FF4757' : traffic > 0.7 ? '#FFA502' : '#2ED573' }}>
+                    {(traffic * 100).toFixed(0)}%
+                  </span>
+                </div>
+                <MiniBar value={traffic} max={1} color={traffic > 0.85 ? '#FF4757' : traffic > 0.7 ? '#FFA502' : '#2ED573'} />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>⚡ Energy</span>
+                  <span style={{ fontWeight: 800, color: '#74B9FF' }}>
+                    {energy >= 1000 ? (energy / 1000).toFixed(1) + ' MWh' : Math.round(energy) + ' kWh'}
+                  </span>
+                </div>
+                <MiniBar value={energy} max={5000} color="#74B9FF" />
+              </div>
+            </div>
+
+            {/* Status badge */}
+            <div style={{
+              marginTop: 4, padding: '5px 0', fontSize: '0.62rem', fontWeight: 800,
+              textAlign: 'center', borderRadius: 8,
+              background: isCritical ? 'rgba(255,71,87,0.12)' : 'rgba(46,213,115,0.08)',
+              color: isCritical ? '#FF4757' : '#2ED573',
+              textTransform: 'uppercase', letterSpacing: '0.12em',
+              border: `1px solid ${isCritical ? 'rgba(255,71,87,0.2)' : 'rgba(46,213,115,0.15)'}`,
+            }}>
+              {isCritical ? '⚠ CRITICAL ALERT' : '● Normal Status'}
             </div>
           </motion.div>
         )
       })}
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.3); }
+        }
+      `}</style>
     </div>
   )
 }
