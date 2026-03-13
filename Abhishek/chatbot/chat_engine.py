@@ -24,7 +24,7 @@ class UrbanChatEngine:
 
         self.ollama_url = config.OLLAMA_NGROK_URL
         self.ollama_model = config.OLLAMA_MODEL
-        self.gemini_api_key = config.GEMINI_API_KEY
+        self.mistral_api_key = config.MISTRAL_API_KEY
         self.backend = config.CHAT_BACKEND
         self.data_summary = data_summary
 
@@ -33,16 +33,15 @@ class UrbanChatEngine:
         self.rag = RAGEngine(config.DATA_PATH)
         print("[ok] RAG engine initialized")
 
-        # Initialize Gemini
-        self.gemini_model = None
-        if self.gemini_api_key:
+        # Initialize Mistral
+        self.mistral_client = None
+        if self.mistral_api_key:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=self.gemini_api_key)
-                self.gemini_model = genai.GenerativeModel("gemini-1.5-pro-latest")
-                print("[ok] Gemini model initialised")
+                from mistralai import Mistral
+                self.mistral_client = Mistral(api_key=self.mistral_api_key)
+                print("[ok] Mistral client initialised")
             except Exception as e:
-                print(f"[!!] Gemini init failed: {e}")
+                print(f"[!!] Mistral init failed: {e}")
 
         print(f"[ok] UrbanChatEngine ready (backend={self.backend})")
 
@@ -108,17 +107,17 @@ class UrbanChatEngine:
                 response = self._chat_ollama(user_message, history)
                 return (response, "ollama")
             except Exception as e:
-                print(f"[!!] Ollama failed: {e} -- falling back to Gemini")
-                if self.gemini_model:
-                    response = self._chat_gemini(user_message, history)
-                    return (response, "gemini_fallback")
+                print(f"[!!] Ollama failed: {e} -- falling back to Mistral")
+                if self.mistral_client:
+                    response = self._chat_mistral(user_message, history)
+                    return (response, "mistral_fallback")
                 return (f"Both backends unavailable. Ollama error: {e}", "error")
 
-        elif backend_to_use == "gemini":
-            if not self.gemini_model:
-                return ("Gemini is not configured. Set GEMINI_API_KEY.", "error")
-            response = self._chat_gemini(user_message, history)
-            return (response, "gemini")
+        elif backend_to_use == "mistral":
+            if not self.mistral_client:
+                return ("Mistral is not configured. Set MISTRAL_API_KEY in .env.", "error")
+            response = self._chat_mistral(user_message, history)
+            return (response, "mistral")
 
         return ("Unknown backend specified.", "error")
 
@@ -160,45 +159,39 @@ class UrbanChatEngine:
         return resp.json()["message"]["content"]
 
     # ------------------------------------------------------------------
-    # Gemini backend (RAG-augmented)
+    # Mistral backend (RAG-augmented)
     # ------------------------------------------------------------------
 
-    def _chat_gemini(self, user_message: str, history: List[Dict]) -> str:
-        """Chat via Google Gemini API with RAG context injection."""
+    def _chat_mistral(self, user_message: str, history: List[Dict]) -> str:
+        """Chat via Mistral API with RAG context injection."""
         # RAG retrieval
         retrieved_context = self.rag.retrieve(user_message, top_k=5)
 
-        history_text = "\n".join(
-            f"{m['role'].upper()}: {m['content']}" for m in history[-5:]
-        )
-        full_prompt = (
-            f"{self.system_prompt}\n\n"
+        augmented_message = (
             f"{retrieved_context}\n\n"
-            f"Conversation history:\n{history_text}\n\n"
-            f"User question: {user_message}\nAssistant:"
+            f"Based on the above retrieved city data, answer this question:\n"
+            f"{user_message}"
         )
-        response = self.gemini_model.generate_content(full_prompt)
-        return response.text
+
+        messages = [{"role": "system", "content": self.system_prompt}]
+        for msg in history[-5:]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+        messages.append({"role": "user", "content": augmented_message})
+
+        response = self.mistral_client.chat.complete(
+            model="mistral-large-latest",
+            messages=messages,
+        )
+        return response.choices[0].message.content
 
     # ------------------------------------------------------------------
     # Chart explanation (Gemini Vision)
     # ------------------------------------------------------------------
 
     def explain_chart(self, image_bytes: bytes) -> str:
-        """Use Gemini Vision to explain a chart image.
-
-        Parameters
-        ----------
-        image_bytes : bytes
-            PNG image data.
-
-        Returns
-        -------
-        str
-            Natural-language explanation of the chart.
-        """
-        if not self.gemini_model:
-            return "Gemini is not configured. Cannot analyze images."
+        """Use Mistral Pixtral Vision to explain a chart image."""
+        if not self.mistral_client:
+            return "Mistral is not configured. Cannot analyze images."
 
         prompt = (
             "You are UrbanMind AI analyzing a smart city analytics "
@@ -211,14 +204,23 @@ class UrbanChatEngine:
         )
         
         try:
-            import io
-            from PIL import Image
+            import base64
+            base64_image = base64.b64encode(image_bytes).decode('utf-8')
             
-            # Wrap raw bytes in a Pillow Image object for the SDK
-            image_obj = Image.open(io.BytesIO(image_bytes))
-            
-            response = self.gemini_model.generate_content([prompt, image_obj])
-            return response.text
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": f"data:image/png;base64,{base64_image}"}
+                    ]
+                }
+            ]
+            response = self.mistral_client.chat.complete(
+                model="pixtral-12b-2409",
+                messages=messages
+            )
+            return response.choices[0].message.content
         except Exception as e:
-            print(f"[!!] Gemini Vision Error: {str(e)}")
+            print(f"[!!] Mistral Vision Error: {str(e)}")
             return f"Error analyzing chart: {str(e)}"

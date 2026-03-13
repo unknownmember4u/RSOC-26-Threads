@@ -332,12 +332,12 @@ async def explain_chart(image: UploadFile = File(...)):
         image_bytes = await image.read()
         engine = _state["chat_engine"]
         explanation = engine.explain_chart(image_bytes)
-        return {"explanation": explanation, "model": "gemini-1.5-flash"}
+        return {"explanation": explanation, "model": "pixtral-12b-2409"}
     except Exception as e:
         return {
             "explanation": "Unable to analyze chart",
             "error": str(e),
-            "model": "gemini-1.5-flash",
+            "model": "pixtral-12b-2409",
         }
 
 

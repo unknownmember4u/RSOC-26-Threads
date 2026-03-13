@@ -42,13 +42,13 @@ OLLAMA_NGROK_URL: str = os.getenv(
 # Default Ollama model
 OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3")
 
-# Google Gemini API key
-GEMINI_API_KEY: str = os.getenv(
-    "GEMINI_API_KEY",
-    "AIzaSyBokb8TOr9Nq2_Whb5CwSG5uyGLtj2NxYA",
+# Mistral API key
+MISTRAL_API_KEY: str = os.getenv(
+    "MISTRAL_API_KEY",
+    "", # User must provide this
 )
 
-# Chat backend selector: "ollama" | "gemini"
+# Chat backend selector: "ollama" | "mistral"
 CHAT_BACKEND: str = os.getenv("CHAT_BACKEND", "ollama")
 
 # ---------------------------------------------------------------------------

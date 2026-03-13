@@ -63,7 +63,7 @@ export const api = {
       body: JSON.stringify({ message, history, backend })
     }).then(r => r.json()),
 
-  // Chat — Image (Gemini Vision)
+  // Chat — Image (Mistral Vision)
   explainChart: async (imageBlob) => {
     const formData = new FormData()
     formData.append("image", imageBlob, "chart.png")

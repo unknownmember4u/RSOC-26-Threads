@@ -75,7 +75,7 @@ export default function ChatAssistant() {
           display: 'flex', background: 'var(--app-bg)', borderRadius: 10, padding: 3,
           border: '1px solid var(--panel-border)'
         }}>
-          {['ollama', 'gemini'].map(b => (
+          {['ollama', 'mistral'].map(b => (
             <button
               key={b}
               onClick={() => setBackend(b)}

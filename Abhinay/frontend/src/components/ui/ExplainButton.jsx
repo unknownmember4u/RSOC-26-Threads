@@ -14,7 +14,7 @@ export default function ExplainButton({ chartRef }) {
       // Capture chart as PNG blob
       const canvas = await html2canvas(chartRef.current, {
         backgroundColor: null,
-        scale: 2 // Higher quality for Gemini
+        scale: 2 // Higher quality for Mistral
       })
       const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"))
       if (!blob) throw new Error("Blob creation failed")
