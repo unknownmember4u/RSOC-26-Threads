@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+xgboost
+requests
+google-generativeai
+python-dotenv
+python-multipart
+tqdm

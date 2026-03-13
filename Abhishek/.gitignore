@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Models (too large for git)
+saved_models/*.pkl
+saved_models/*.h5
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+_verify.py
+_test_api.py
+training_output.log

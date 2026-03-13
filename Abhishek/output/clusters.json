@@ -1,0 +1,82 @@
+[
+  {
+    "district_id": "D01",
+    "cluster_id": 0,
+    "cluster_label": "Industrial Hotspot",
+    "risk_score": 0.7336,
+    "lat": 18.5308,
+    "lng": 73.8474
+  },
+  {
+    "district_id": "D02",
+    "cluster_id": 1,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.0402,
+    "lat": 18.5074,
+    "lng": 73.8077
+  },
+  {
+    "district_id": "D03",
+    "cluster_id": 3,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.3974,
+    "lat": 18.5018,
+    "lng": 73.9252
+  },
+  {
+    "district_id": "D04",
+    "cluster_id": 2,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.1875,
+    "lat": 18.5984,
+    "lng": 73.7611
+  },
+  {
+    "district_id": "D05",
+    "cluster_id": 3,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.5534,
+    "lat": 18.6279,
+    "lng": 73.8009
+  },
+  {
+    "district_id": "D06",
+    "cluster_id": 2,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.4201,
+    "lat": 18.559,
+    "lng": 73.7868
+  },
+  {
+    "district_id": "D07",
+    "cluster_id": 3,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.3268,
+    "lat": 18.5089,
+    "lng": 73.9259
+  },
+  {
+    "district_id": "D08",
+    "cluster_id": 3,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.3586,
+    "lat": 18.5497,
+    "lng": 73.9397
+  },
+  {
+    "district_id": "D09",
+    "cluster_id": 1,
+    "cluster_label": "Balanced Urban Zone",
+    "risk_score": 0.2594,
+    "lat": 18.5679,
+    "lng": 73.9143
+  },
+  {
+    "district_id": "D10",
+    "cluster_id": 0,
+    "cluster_label": "Industrial Hotspot",
+    "risk_score": 0.923,
+    "lat": 18.5018,
+    "lng": 73.8636
+  }
+]
