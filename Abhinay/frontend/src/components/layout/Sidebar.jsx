@@ -39,7 +39,7 @@ export default function Sidebar() {
         <Logo size={30} />
       </button>
 
-      <div style={{ width: 26, height: 1, background: 'rgba(132,177,121,0.10)', marginBottom: 4 }} />
+      <div style={{ width: 26, height: 1, background: 'var(--panel-border-heavy)', marginBottom: 4 }} />
 
       {/* Nav icons */}
       {NAV.map(item => {
@@ -74,11 +74,11 @@ function NavLinkIcon({ item, isActive }) {
           width: 42, height: 42, borderRadius: 12,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.15rem',
-          background: isActive ? 'rgba(132,177,121,0.15)' : 'transparent',
-          border: isActive ? '1px solid rgba(132,177,121,0.35)' : '1px solid transparent',
+          background: isActive ? 'var(--accent-alpha-20)' : 'transparent',
+          border: isActive ? '1px solid var(--brand-solid)' : '1px solid transparent',
           position: 'relative',
           cursor: 'pointer',
-          transition: 'background 0.2s, border 0.2s',
+          transition: 'all 0.2s ease',
         }}
       >
         {item.emoji}

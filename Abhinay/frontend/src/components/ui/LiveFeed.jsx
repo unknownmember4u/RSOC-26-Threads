@@ -5,7 +5,7 @@ import { api } from "../../api/urbanmindAPI"
 function MiniBar({ value, max, color }) {
   const pct = Math.min(100, (value / max) * 100)
   return (
-    <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden', marginTop: 3 }}>
+    <div style={{ height: 4, background: 'var(--panel-border-heavy)', borderRadius: 2, overflow: 'hidden', marginTop: 3 }}>
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
@@ -88,7 +88,7 @@ export default function LiveFeed() {
             }}
             style={{
               background: 'var(--panel-bg)',
-              border: `1px solid ${isCritical ? '#FF475788' : 'var(--panel-border)'}`,
+              border: `1px solid ${isCritical ? '#FF4757' : 'var(--panel-border-heavy)'}`,
               borderRadius: 18,
               padding: 20,
               display: 'flex',
@@ -112,10 +112,11 @@ export default function LiveFeed() {
 
             {/* District ID badge */}
             <div style={{ 
-              fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700, 
+              fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 800, 
               textTransform: 'uppercase', letterSpacing: '0.12em',
-              background: 'rgba(255,255,255,0.04)', 
-              padding: '2px 8px', borderRadius: 4, width: 'fit-content'
+              background: 'var(--accent-alpha-10)', 
+              padding: '2px 8px', borderRadius: 4, width: 'fit-content',
+              border: '1px solid var(--panel-border)',
             }}>
               {district.district_id}
             </div>
@@ -153,12 +154,12 @@ export default function LiveFeed() {
 
             {/* Status badge */}
             <div style={{
-              marginTop: 4, padding: '5px 0', fontSize: '0.62rem', fontWeight: 800,
+              marginTop: 4, padding: '5px 0', fontSize: '0.65rem', fontWeight: 900,
               textAlign: 'center', borderRadius: 8,
-              background: isCritical ? 'rgba(255,71,87,0.12)' : 'rgba(46,213,115,0.08)',
-              color: isCritical ? '#FF4757' : '#2ED573',
+              background: isCritical ? 'rgba(255,71,87,0.15)' : 'var(--accent-alpha-10)',
+              color: isCritical ? '#DC2626' : '#16A34A',
               textTransform: 'uppercase', letterSpacing: '0.12em',
-              border: `1px solid ${isCritical ? 'rgba(255,71,87,0.2)' : 'rgba(46,213,115,0.15)'}`,
+              border: `1px solid ${isCritical ? '#DC262644' : '#16A34A44'}`,
             }}>
               {isCritical ? '⚠ CRITICAL ALERT' : '● Normal Status'}
             </div>

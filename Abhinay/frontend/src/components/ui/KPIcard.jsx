@@ -33,16 +33,17 @@ export default function KPICard({ icon, label, value, change, color = '#FF6B6B',
       style={{
         background: 'var(--panel-bg)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        border: `1px solid ${color}22`,
+        border: `1px solid var(--panel-border-heavy)`,
         borderRadius: 18, padding: '20px',
         position: 'relative', overflow: 'hidden',
         cursor: 'default',
-        transition: 'transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'all 0.25s ease',
       }}
       whileHover={{
         y: -4,
-        borderColor: `${color}55`,
-        boxShadow: `0 8px 32px ${color}20`,
+        borderColor: color,
+        boxShadow: 'var(--shadow-md)',
       }}
     >
       {/* Glow orb background */}
@@ -66,19 +67,18 @@ export default function KPICard({ icon, label, value, change, color = '#FF6B6B',
         </div>
         {!isNeutral && (
           <span style={{
-            fontSize: '0.68rem', fontWeight: 700,
-            padding: '3px 8px', borderRadius: 50,
-            background: isPositive ? 'rgba(46,213,115,0.12)' : 'rgba(255,71,87,0.12)',
-            color: isPositive ? '#2ED573' : '#FF4757',
-            border: `1px solid ${isPositive ? 'rgba(46,213,115,0.20)' : 'rgba(255,71,87,0.20)'}`,
+            fontSize: '0.68rem', fontWeight: 800,
+            padding: '3px 10px', borderRadius: 50,
+            background: isPositive ? 'rgba(46,213,115,0.15)' : 'rgba(255,71,87,0.15)',
+            color: isPositive ? '#16A34A' : '#DC2626',
+            border: `1px solid ${isPositive ? '#16A34A44' : '#DC262644'}`,
           }}>
             {change > 0 ? '↑' : '↓'} {Math.abs(change)}%
           </span>
         )}
       </div>
 
-      {/* Value */}
-      <div style={{ fontSize: '1.7rem', fontWeight: 900, color, letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 6 }}>
+      <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.5px', lineHeight: 1, marginBottom: 6 }}>
         {value}
       </div>
       <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>

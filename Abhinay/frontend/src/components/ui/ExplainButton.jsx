@@ -38,10 +38,10 @@ export default function ExplainButton({ chartRef }) {
         disabled={loading}
         style={{
           padding: '8px 16px',
-          background: loading ? 'rgba(132, 177, 121, 0.1)' : 'rgba(132, 177, 121, 0.15)',
-          border: '1px solid rgba(132, 177, 121, 0.3)',
+          background: loading ? 'var(--accent-alpha-10)' : 'var(--accent-alpha-20)',
+          border: '1px solid var(--brand-solid)',
           borderRadius: 8,
-          color: '#84B179',
+          color: 'var(--brand-solid)',
           fontSize: '0.75rem',
           fontWeight: 700,
           cursor: loading ? 'not-allowed' : 'pointer',
@@ -68,8 +68,8 @@ export default function ExplainButton({ chartRef }) {
         <div style={{
           marginTop: 12,
           padding: 16,
-          background: 'rgba(255, 255, 255, 0.03)',
-          borderLeft: '4px solid #84B179',
+          background: 'var(--accent-alpha-10)',
+          borderLeft: '4px solid var(--brand-solid)',
           borderRadius: '0 8px 8px 0',
           fontSize: '0.85rem',
           lineHeight: 1.6,

@@ -33,10 +33,10 @@ export default function Clusters() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Left: Table */}
-        <div className="bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-lg h-[400px]">
-          <table className="w-full text-left border-collapse">
+        <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border-heavy)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-md)', height: 400 }}>
+          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="bg-dark-surface border-b border-dark-border text-xs font-bold text-text-muted uppercase tracking-wider">
+              <tr style={{ background: 'var(--accent-alpha-10)', borderBottom: '1px solid var(--panel-border-heavy)', fontSize: '0.7rem', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 <th className="p-4 w-16">ID</th>
                 <th className="p-4">Profile Label</th>
                 <th className="p-4">Districts</th>
@@ -48,7 +48,9 @@ export default function Clusters() {
                 <tr 
                   key={c.id} 
                   onClick={() => setActiveCluster(c.id)}
-                  className={`border-b border-dark-border cursor-pointer transition-colors ${activeCluster === c.id ? 'bg-um-primary/10' : 'hover:bg-dark-surface'} group`}
+                  style={{ borderBottom: '1px solid var(--panel-border)', cursor: 'pointer', transition: 'all 0.2s ease', background: activeCluster === c.id ? 'var(--accent-alpha-10)' : 'transparent' }}
+                  onMouseEnter={e => { if (activeCluster !== c.id) e.currentTarget.style.background = 'var(--accent-alpha-10)'; }}
+                  onMouseLeave={e => { if (activeCluster !== c.id) e.currentTarget.style.background = 'transparent'; }}
                 >
                   <td className="p-4 font-black">
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white" style={{ backgroundColor: c.color }}>{c.id}</span>
@@ -57,9 +59,9 @@ export default function Clusters() {
                   <td className="p-4 text-sm text-text-secondary">{c.districts}</td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <span className="text-lg font-black" style={{ color: c.color }}>{c.risk}</span>
-                      <div className="w-16 h-1.5 bg-dark-bg rounded-full overflow-hidden border border-dark-border/50">
-                        <div className="h-full rounded-full" style={{ width: `${c.risk}%`, backgroundColor: c.color }}></div>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 900, color: c.color }}>{c.risk}</span>
+                      <div style={{ width: 64, height: 6, background: 'var(--accent-alpha-10)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--panel-border)' }}>
+                        <div style={{ height: '100%', borderRadius: 10, width: `${c.risk}%`, backgroundColor: c.color }}></div>
                       </div>
                     </div>
                   </td>
@@ -70,7 +72,7 @@ export default function Clusters() {
         </div>
 
         {/* Right: Map */}
-        <div className="bg-dark-card border border-dark-border rounded-2xl overflow-hidden shadow-lg h-[400px] relative">
+        <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border-heavy)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-md)', height: 400, position: 'relative' }}>
           <MapContainer center={MAP_CENTER} zoom={MAP_ZOOM} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               attribution='&copy; CARTO'
@@ -99,7 +101,8 @@ export default function Clusters() {
           layout={{ 
             ...CHART_LAYOUT, 
             height: 400,
-            polar: { radialaxis: { visible: true, range: [0, 1], gridcolor: '#2D3348', linecolor: '#2D3348' }, angularaxis: { gridcolor: '#2D3348', linecolor: '#2D3348' }, bgcolor: 'transparent' },
+            polar: { radialaxis: { visible: true, range: [0, 1], gridcolor: 'var(--panel-border-heavy)', linecolor: 'var(--panel-border-heavy)' }, angularaxis: { gridcolor: 'var(--panel-border-heavy)', linecolor: 'var(--panel-border-heavy)' }, bgcolor: 'transparent' },
+            font: { color: 'var(--text-muted)', family: 'Inter', size: 10, weight: '700' }
           }}
           config={CHART_CONFIG}
           className="w-full"

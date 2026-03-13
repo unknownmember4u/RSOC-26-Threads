@@ -8,7 +8,7 @@ export default function DashboardLayout() {
       <Sidebar />
       <div style={{ flex: 1, marginLeft: 68, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Topbar />
-        <main style={{ flex: 1, padding: '28px 28px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '32px 32px', overflowY: 'auto' }}>
           <Outlet />
         </main>
       </div>

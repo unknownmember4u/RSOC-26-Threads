@@ -58,9 +58,9 @@ export default function ChatAssistant() {
     }}>
       {/* Header */}
       <div style={{
-        padding: '16px 20px', borderBottom: '1px solid var(--panel-border)',
+        padding: '16px 20px', borderBottom: '1px solid var(--panel-border-heavy)',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        background: 'rgba(132, 177, 121, 0.05)'
+        background: 'var(--accent-alpha-10)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: '1.4rem' }}>🤖</span>
@@ -113,7 +113,7 @@ export default function ChatAssistant() {
               maxWidth: '75%', padding: '12px 16px', borderRadius: 16,
               borderBottomLeftRadius: m.role === 'assistant' ? 4 : 16,
               borderBottomRightRadius: m.role === 'user' ? 4 : 16,
-              background: m.role === 'user' ? 'linear-gradient(135deg, #84B179, #5e8a54)' : 'var(--panel-border)',
+              background: m.role === 'user' ? 'linear-gradient(135deg, #16A34A, #15803D)' : 'var(--accent-alpha-10)',
               color: m.role === 'user' ? '#fff' : 'var(--text-main)',
               fontSize: '0.88rem', lineHeight: 1.5, position: 'relative',
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
@@ -142,7 +142,7 @@ export default function ChatAssistant() {
       </div>
 
       {/* Footer */}
-      <div style={{ padding: '20px', background: 'rgba(132, 177, 121, 0.02)', borderTop: '1px solid var(--panel-border)' }}>
+      <div style={{ padding: '20px', background: 'var(--panel-bg)', borderTop: '1px solid var(--panel-border-heavy)' }}>
         {/* Quick Chips */}
         {!loading && messages.length < 3 && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -171,8 +171,8 @@ export default function ChatAssistant() {
             onChange={e => setInput(e.target.value)}
             placeholder="Ask anything about city data..."
             style={{
-              width: '100%', padding: '14px 60px 14px 20px', background: 'var(--app-bg)',
-              border: '1px solid var(--panel-border)', borderRadius: 14, outline: 'none',
+              width: '100%', padding: '14px 60px 14px 20px', background: 'var(--panel-bg)',
+              border: '1px solid var(--panel-border-heavy)', borderRadius: 14, outline: 'none',
               color: 'var(--text-main)', fontSize: '0.9rem', fontFamily: 'inherit'
             }}
           />

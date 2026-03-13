@@ -66,13 +66,13 @@ export default function Topbar() {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 32, height: 32, borderRadius: 8,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(132,177,121,0.18)',
-            color: '#84B179', cursor: 'pointer', transition: 'background 0.2s',
+            background: 'var(--accent-alpha-10)',
+            border: '1px solid var(--panel-border-heavy)',
+            color: 'var(--brand-solid)', cursor: 'pointer', transition: 'all 0.2s',
           }}
           title="Toggle Light/Dark Theme"
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(132,177,121,0.08)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-alpha-20)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-alpha-10)'}
         >
           {useGlobalStore.getState().theme === 'dark' ? '☀️' : '🌙'}
         </button>
@@ -101,8 +101,8 @@ export default function Topbar() {
         {/* LIVE badge */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          background: 'rgba(132,177,121,0.10)',
-          border: '1px solid rgba(132,177,121,0.22)',
+          background: 'var(--accent-alpha-10)',
+          border: '1px solid var(--brand-solid)',
           borderRadius: 50, padding: '4px 11px',
         }}>
 
@@ -115,15 +115,15 @@ export default function Topbar() {
           <button onClick={() => { setOpen(o => !o); setSearch(''); }}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(132,177,121,0.18)',
+              background: 'var(--accent-alpha-10)',
+              border: '1px solid var(--panel-border-heavy)',
               borderRadius: 9, padding: '6px 12px',
-              color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: 600,
-              cursor: 'pointer', transition: 'background 0.2s',
+              color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: 700,
+              cursor: 'pointer', transition: 'all 0.2s',
               fontFamily: 'inherit', maxWidth: 200,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(132,177,121,0.08)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-alpha-20)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--accent-alpha-10)'}
           >
             {/* Map pin */}
             <svg width="11" height="13" viewBox="0 0 11 13" fill="none">
@@ -146,24 +146,24 @@ export default function Topbar() {
                   transition={{ duration: 0.15 }}
                   style={{
                     position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-                    background: '#111A0F',
-                    border: '1px solid rgba(132,177,121,0.15)',
+                    background: 'var(--panel-bg)',
+                    backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                    border: '1px solid var(--panel-border)',
                     borderRadius: 14, overflow: 'hidden',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
                     zIndex: 99, width: 240,
                   }}
                 >
-                  {/* Search */}
-                  <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--panel-border)' }}>
                     <input
                       autoFocus
                       value={search}
                       onChange={e => setSearch(e.target.value)}
                       placeholder="Search city…"
                       style={{
-                        width: '100%', background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(132,177,121,0.18)', borderRadius: 8,
-                        padding: '7px 10px', fontSize: '0.8rem', color: '#F1F5F9',
+                        width: '100%', background: 'var(--app-bg)',
+                        border: '1px solid var(--panel-border)', borderRadius: 8,
+                        padding: '7px 10px', fontSize: '0.8rem', color: 'var(--text-main)',
                         outline: 'none', fontFamily: 'inherit',
                       }}
                     />
